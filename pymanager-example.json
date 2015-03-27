@@ -23,5 +23,5 @@
 		"enabled": true,
 		"port": 5001
 	},
-	"keep-alive": true
+	"keep_alive": true
 }

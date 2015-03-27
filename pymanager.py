@@ -118,18 +118,18 @@ def main():
 			http_service.fork_http_service(port)
 
 	keepAlive = False
-	if "keep-alive" in config:
-		if config["keep-alive"]:
+	if "keep_alive" in config:
+		if config["keep_alive"]:
 			keepAlive = True
 
-	if "graceful-time" in config:
+	if "graceful_time" in config:
 		try:
-			t = int(config["graceful-time"])
+			t = int(config["graceful_time"])
 			if t < 0:
 				raise ValueError
 			Globals.terminate_time_allowed = t
 		except ValueError:
-			print("Warning: invalid graceful-time '{0}', must be a positive number.".format(t))
+			print("Warning: invalid graceful_time '{0}', must be a positive number.".format(t))
 
 	runningProcesses = len(Process.processes)
 	while (runningProcesses or keepAlive) and not Globals.shutdown:
