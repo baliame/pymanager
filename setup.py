@@ -5,7 +5,7 @@ description='A process manager in Python.'
 
 setup(
     name='pymanager',
-    version='0.1.2',
+    version='0.1.3',
     description=description,
     long_description=description,
     url='https://github.com/baliame/pymanager',
