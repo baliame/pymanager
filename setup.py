@@ -2,12 +2,13 @@
 from setuptools import *
 
 description='A process manager in Python.'
+long_description = open('README.rst').read()
 
 setup(
     name='pymanager',
     version='0.1.3',
     description=description,
-    long_description=description,
+    long_description=long_description,
     url='https://github.com/baliame/pymanager',
     author='Baliame',
     author_email='akos.toth@cheppers.com',
