@@ -139,6 +139,8 @@ def main():
 			if result is None:
 				runningProcesses += 1
 		time.sleep(5)
+		if not keepAlive and not runningProcesses:
+			Globals.may_terminate = True
 
 	while not Globals.may_terminate:
 		time.sleep(5)
