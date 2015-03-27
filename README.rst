@@ -59,14 +59,40 @@ All verifiers loaded used must be loaded in the modules section. The key of the 
 
 Http
 ^^^^
-The application exposes an HTTP interface for convenient manipulation and data exchange. To flip the switch, add `"enabled": true` in the HTTP object in the configuration. The port by default is 5001, which may be modified using the `port` option.
+The application exposes an HTTP interface for convenient manipulation and data exchange. To flip the switch, add
+
+    "enabled": true
+
+in the HTTP object in the configuration. The port by default is 5001, which may be modified using the `port` option.
+
+The available HTTP endpoints currently are:
+
+    GET /
+
+Lists all processes managed by the application, including the status, the internal ID and the process ID or exit code, which ever applicable.
+
+    POST /restart/<id>
+
+Restarts the process with the internal ID <id>. The application gives a few seconds for the process to gracefully terminate. If the process cannot gracefully terminate within the given timeframe, it is forcibly terminated before starting it up again.
+
+    DELETE /
+
+Shuts down the application asynchronously. The request will return and the graceful termination period will begin. By default, 10 seconds are allowed for each process to terminate gracefully before forceful termination, this time period can be modified though - see below.
 
 Keep-alive
 ^^^^^^^^^^
 By default, the pymanager process terminates if all processes are terminated. You can override this behaviour and keep the manager process running by setting keep-alive to true. This is useful if one or more processes can be restarted later without requiring the other processes which are defined.
+
+Graceful-time
+^^^^^^^^^^^^^
+The graceful-time option may be specified to control the amount of time given for each subprocess to terminate gracefully before forceful termination.
 
 Processes
 ^^^^^^^^^
 Each process is an entry in the list of processes. A process requires an executable and arguments. The executable is, naturally, require and the arguments must be provided even if the process takes no arguments - in that case, as an empty list. Optionally, options may be passed to the process launcher. Currently only one option is recognized: suppress_output, if set to true, the output of the process will not be displayed on standard output. By default, all process output is displayed.
 
 A process may also include a verifier. If the verifier key is present, the type must be provided. The type of the verifier must be loaded in the modules section and takes the form of 'module.classname'. Optionally, you may provide a dictionary of arguments to pass to the keyword arguments of the initializer function of the verifier.
+
+Signal response
+===============
+The application will respond to SIGINT, SIGTERM and SIGQUIT the same way as if a DELETE / request was issued to its HTTP endpoint.
