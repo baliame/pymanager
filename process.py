@@ -47,8 +47,15 @@ class Process:
 		print("$ {0}".format(self.cmdString))
 		out_method = None
 		if "suppress_output" in kwargs and kwargs["suppress_output"]:
+			if "redirect_output" in kwargs:
+				raise ArgumentError("Suppress output and redirect output are mutually exclusive.")
 			out_method = subprocess.PIPE
-		self.proc = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=out_method, stderr=subprocess.STDOUT)
+		elif "redirect_output" in kwargs:
+			out_method = open(kwargs["redirect_output"], 'w')
+		cwd = None
+		if "working_directory" in kwargs:
+			cwd = kwargs["working_directory"]
+		self.proc = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=out_method, stderr=subprocess.STDOUT, cwd=cwd)
 		self.verifier = verifier
 		self.options = kwargs
 		if verifier is not None:

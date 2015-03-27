@@ -5,7 +5,7 @@ description='A process manager in Python.'
 
 setup(
     name='pymanager',
-    version='0.1.0a',
+    version='0.1.1',
     description=description,
     long_description=description,
     url='https://github.com/baliame/pymanager',
@@ -25,6 +25,7 @@ setup(
         'Programming Language :: Python :: 3.4',
     ],
     keywords='process manager management',
+    py_modules=["pymanager", "verifier"]
     packages=find_packages(),
     install_requires = [
     	'bottle',

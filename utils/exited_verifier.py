@@ -1,5 +1,5 @@
 import subprocess
-from verifier import Verifier
+from .verifier import Verifier
 
 class ExitedVerifier(Verifier):
 	def __init__(self, **kwargs):

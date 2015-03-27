@@ -1,6 +1,6 @@
 {
 	"modules": {
-		"http_verifier": {
+		"utils.http_verifier": {
 			"verifiers": ["HttpOkVerifier"]
 		}
 	},
@@ -12,7 +12,7 @@
 				"suppress_output": true
 			},
 			"verifier": {
-				"type": "http_verifier.HttpOkVerifier",
+				"type": "utils.http_verifier.HttpOkVerifier",
 				"arguments": {
 					"url": "http://google.com"
 				}

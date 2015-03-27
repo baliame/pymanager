@@ -1,6 +1,6 @@
 import traceback
 from process import Process
-import verifier
+import utils.verifier as verifier
 from optparse import OptionParser
 import http_service
 import os

@@ -1,7 +1,7 @@
 import time
 import requests
 from requests import exceptions as reqexcept
-from verifier import Verifier
+from .verifier import Verifier
 
 class HttpOkVerifier(Verifier):
 	def __init__(self, **kwargs):
