@@ -1,0 +1,27 @@
+{
+	"modules": {
+		"http_verifier": {
+			"verifiers": ["HttpOkVerifier"]
+		}
+	},
+	"processes": {
+		"test": {
+			"executable": "python3",
+			"arguments": ["test.py"],
+			"options": {
+				"suppress_output": true
+			},
+			"verifier": {
+				"type": "http_verifier.HttpOkVerifier",
+				"arguments": {
+					"url": "http://google.com"
+				}
+			}
+		}
+	},
+	"http": {
+		"enabled": true,
+		"port": 5001
+	},
+	"keep-alive": true
+}
