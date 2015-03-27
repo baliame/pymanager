@@ -1,15 +1,15 @@
 import traceback
-from process import Process
+from utils.process import Process
 import utils.verifier as verifier
 from optparse import OptionParser
-import http_service
+import utils.http_service as http_service
 import os
 import json
 import inspect
 import signal
 import sys
 import time
-from global_storage import Globals
+from utils.global_storage import Globals
 
 def parse(filename):
 	try:

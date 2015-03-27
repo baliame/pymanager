@@ -1,6 +1,6 @@
 from bottle import get, post, delete, request, run, abort, HTTPResponse
-from process import Process
-from global_storage import Globals
+from .process import Process
+from .global_storage import Globals
 from threading import Thread
 import json
 
