@@ -1,12 +1,13 @@
 #from setuptools import setup, find_packages
 from setuptools import *
+from pymanager import version
 
 description='A process manager in Python.'
 long_description = open('README.rst').read()
 
 setup(
     name='pymanager',
-    version='0.2.0',
+    version=version,
     description=description,
     long_description=long_description,
     url='https://github.com/baliame/pymanager',

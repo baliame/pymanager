@@ -11,6 +11,8 @@ import sys
 import time
 from pymutils.global_storage import Globals
 
+version = "0.2.0"
+
 def parse(filename):
 	try:
 		with open(filename, 'r') as f:
@@ -79,10 +81,17 @@ def spawnDaemon(func, conf):
 
 def main():
 	parser = OptionParser()
+	parser.add_option("-V", "--version", dest="version", default=False, action="store_true", help="Display version and exit.")
 	parser.add_option("-f", "--file", dest="filename", default="pymanager.json", help="The name of the pymanager file to use, defaults to pymanager.json.", metavar="FILE")
 	parser.add_option("-d", "--daemon", dest="daemon", default=False, action="store_true", help="Daemonize self after processes are launched.")
 	opts, args = parser.parse_args()
+
+	if opts.version:
+		print("pymanager version {0}".format(version))
+		exit(0)
+
 	config = parse(opts.filename)
+
 
 	if opts.daemon:
 		spawnDaemon(spawn_and_monitor, config)
@@ -92,6 +101,15 @@ def main():
 
 def spawn_and_monitor(config):
 	verifiers = {}
+
+	if "http" in config:
+		hconf = config["http"]
+		if "enabled" in hconf and hconf["enabled"]:
+			port = 5001
+			if "port" in hconf:
+				port = hconf["port"]
+			http_service.fork_http_service(port)
+
 	Globals.status = "parsing modules"
 	if "modules" in config:
 		for module, definition in config["modules"].items():
@@ -158,14 +176,6 @@ def spawn_and_monitor(config):
 				proc.kill()
 			except Exception:
 				pass
-
-	if "http" in config:
-		hconf = config["http"]
-		if "enabled" in hconf and hconf["enabled"]:
-			port = 5001
-			if "port" in hconf:
-				port = hconf["port"]
-			http_service.fork_http_service(port)
 
 	if "keep_alive" in config:
 		if config["keep_alive"]:
