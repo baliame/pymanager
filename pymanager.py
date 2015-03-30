@@ -170,12 +170,14 @@ def spawn_and_monitor(config):
 	except Exception as e:
 		etype, _, _ = sys.exc_info()
 		print("Error: could not set up processes: {0}: {1}".format(etype.__name__, e))
+		Globals.status = "shutdown"
 		#traceback.print_exc()
 		for proc in Process.processes:
 			try:
 				proc.kill()
 			except Exception:
 				pass
+			return 5
 
 	if "keep_alive" in config:
 		if config["keep_alive"]:
