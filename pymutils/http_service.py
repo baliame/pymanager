@@ -40,6 +40,13 @@ def list_processes():
 		output["processes"].append(procdata)
 	return output
 
+@get("/status")
+def service_status():
+	return {
+		"status": Globals.status
+	}
+
+
 @post("/restart/<id>")
 def restart_process(id):
 	if Globals.shutdown:
@@ -60,6 +67,7 @@ def kill_process_tree():
 	if Globals.shutdown:
 		r403("Process is in shutdown.")
 	Globals.shutdown = True
+	Globals.status = "shutdown"
 	p = Thread(target=async_shutdown, args=())
 	p.start()
 	return {"success": True}

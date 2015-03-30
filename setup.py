@@ -6,7 +6,7 @@ long_description = open('README.rst').read()
 
 setup(
     name='pymanager',
-    version='0.1.4',
+    version='0.2.0',
     description=description,
     long_description=long_description,
     url='https://github.com/baliame/pymanager',
@@ -29,7 +29,7 @@ setup(
     py_modules=["pymanager"],
     packages=find_packages(),
     install_requires = [
-    	'bottle',
+    	'bottle', 'requests'
     ],
     entry_points= {
     	'console_scripts': [

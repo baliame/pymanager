@@ -1,4 +1,3 @@
-import traceback
 from pymutils.process import Process
 import pymutils.verifier as verifier
 from optparse import OptionParser
@@ -36,6 +35,7 @@ def graceful_shutdown(signum, frame):
 	if Globals.shutdown:
 		if signum == signal.SIGINT:
 			Globals.in_force_quit = True
+			Globals.status = "force shutdown"
 			for proc in Process.processes:
 				if proc.poll() is None:
 					proc.kill()
@@ -43,6 +43,7 @@ def graceful_shutdown(signum, frame):
 		return
 	print("Shutting down gracefully (SIGINT again to terminate immediately)...")
 	Globals.shutdown = True
+	Globals.status = "shutdown"
 	for proc in Process.processes:
 		if Globals.in_force_quit:
 			return
@@ -53,12 +54,45 @@ def graceful_shutdown(signum, frame):
 			pass
 	Globals.may_terminate = True
 
+def spawnDaemon(func, conf):
+    try: 
+        pid = os.fork() 
+        if pid > 0:
+            return
+    except OSError as e:
+        print("fork #1 failed: {0} ({1})".format(e.errno, e.strerror))
+        sys.exit(6)
+
+    os.setsid()
+
+    try: 
+        pid = os.fork() 
+        if pid > 0:
+            sys.exit(0) 
+    except OSError as e: 
+        print("fork #2 failed: {0} ({1})".format(e.errno, e.strerror))
+        sys.exit(7)
+
+    func(conf)
+
+    os._exit(os.EX_OK)
+
 def main():
 	parser = OptionParser()
 	parser.add_option("-f", "--file", dest="filename", default="pymanager.json", help="The name of the pymanager file to use, defaults to pymanager.json.", metavar="FILE")
+	parser.add_option("-d", "--daemon", dest="daemon", default=False, action="store_true", help="Daemonize self after processes are launched.")
 	opts, args = parser.parse_args()
 	config = parse(opts.filename)
+
+	if opts.daemon:
+		spawnDaemon(spawn_and_monitor, config)
+		return 0
+	else:
+		return spawn_and_monitor(config)
+
+def spawn_and_monitor(config):
 	verifiers = {}
+	Globals.status = "parsing modules"
 	if "modules" in config:
 		for module, definition in config["modules"].items():
 			if "verifiers" not in definition:
@@ -89,6 +123,7 @@ def main():
 	signal.signal(signal.SIGTERM, graceful_shutdown)
 	signal.signal(signal.SIGQUIT, graceful_shutdown)
 
+	Globals.status = "launching processes"
 	if "messages" in config:
 		Globals.messages = config["messages"]
 
@@ -132,10 +167,9 @@ def main():
 				port = hconf["port"]
 			http_service.fork_http_service(port)
 
-	keepAlive = False
 	if "keep_alive" in config:
 		if config["keep_alive"]:
-			keepAlive = True
+			Globals.keep_alive = True
 
 	if "graceful_time" in config:
 		try:
@@ -146,17 +180,20 @@ def main():
 		except ValueError:
 			print("Warning: invalid graceful_time '{0}', must be a positive number.".format(t))
 
+	
+	Globals.status = "running"
 	runningProcesses = len(Process.processes)
-	while (runningProcesses or keepAlive) and not Globals.shutdown:
+	while (runningProcesses or Globals.keep_alive) and not Globals.shutdown:
 		runningProcesses = 0
 		for proc in Process.processes:
 			result = proc.poll()
 			if result is None:
 				runningProcesses += 1
 		time.sleep(5)
-		if not keepAlive and not runningProcesses:
+		if not Globals.keep_alive and not runningProcesses:
 			Globals.may_terminate = True
 
+	Globals.status = "shutdown"
 	while not Globals.may_terminate:
 		time.sleep(5)
 

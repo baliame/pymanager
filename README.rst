@@ -7,6 +7,8 @@ Usage
 -----
 To use, place a configuration file in the target directory. The configuration file is a json file (by default, pymanager.json, but it can be changed with the -f or --file switch) following a specified structure.
 
+You may also launch the process manager as a daemon. Pass the -d or --daemon switch to do this.
+
 Concepts
 --------
 The manager works with two kinds of objects: processes and verifiers.
@@ -70,6 +72,10 @@ The available HTTP endpoints currently are:
     GET /
 
 Lists all processes managed by the application, including the status, the internal ID and the process ID or exit code, which ever applicable.
+
+    GET /status
+
+Returns the state of the application. If the status is 'running', it is safe to assume that all processes are in their desired state.
 
     POST /restart/<id>
 
