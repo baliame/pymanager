@@ -5,7 +5,6 @@ class Verifier:
 		return True
 
 	def log_fail(self, message):
-		print("pi")
 		if "verifier.fail" in Globals.messages or "verifier.verbose" in Globals.messages:
 			print("Verifier fail: {0}".format(message))
 
