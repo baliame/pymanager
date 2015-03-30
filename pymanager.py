@@ -1,15 +1,16 @@
 import traceback
-from utils.process import Process
-import utils.verifier as verifier
+from pymutils.process import Process
+import pymutils.verifier as verifier
 from optparse import OptionParser
-import utils.http_service as http_service
+import pymutils.http_service as http_service
+import collections
 import os
 import json
 import inspect
 import signal
 import sys
 import time
-from utils.global_storage import Globals
+from pymutils.global_storage import Globals
 
 def parse(filename):
 	try:
@@ -22,7 +23,7 @@ def parse(filename):
 		print("Error while loading file {0}: {1}.".format(filename, e))
 		exit(2)
 	try:
-		jdata = json.loads(config_data)
+		jdata = json.JSONDecoder(object_pairs_hook=collections.OrderedDict).decode(config_data)
 	except ValueError:
 		print("{0} is not a valid JSON file.".format(filename))
 		exit(3)
@@ -30,10 +31,21 @@ def parse(filename):
 	return jdata
 
 def graceful_shutdown(signum, frame):
-	if Globals.shutdown:
+	if Globals.in_force_quit:
 		return
+	if Globals.shutdown:
+		if signum == signal.SIGINT:
+			Globals.in_force_quit = True
+			for proc in Process.processes:
+				if proc.poll() is None:
+					proc.kill()
+			Globals.may_terminate = True
+		return
+	print("Shutting down gracefully (SIGINT again to terminate immediately)...")
 	Globals.shutdown = True
 	for proc in Process.processes:
+		if Globals.in_force_quit:
+			return
 		try:
 			if proc.poll() is None:
 				proc.force_terminate(Globals.terminate_time_allowed)
@@ -76,6 +88,9 @@ def main():
 	signal.signal(signal.SIGINT, graceful_shutdown)
 	signal.signal(signal.SIGTERM, graceful_shutdown)
 	signal.signal(signal.SIGQUIT, graceful_shutdown)
+
+	if "messages" in config:
+		Globals.messages = config["messages"]
 
 	try:
 		for key, procdef in config["processes"].items():

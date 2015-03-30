@@ -1,6 +1,6 @@
 {
 	"modules": {
-		"utils.http_verifier": {
+		"pymutils.http_verifier": {
 			"verifiers": ["HttpOkVerifier"]
 		}
 	},
@@ -9,10 +9,10 @@
 			"executable": "python3",
 			"arguments": ["test.py"],
 			"options": {
-				"suppress_output": true
+				"suppress_output": false
 			},
 			"verifier": {
-				"type": "utils.http_verifier.HttpOkVerifier",
+				"type": "pymutils.http_verifier.HttpOkVerifier",
 				"arguments": {
 					"url": "http://google.com"
 				}
@@ -23,5 +23,9 @@
 		"enabled": true,
 		"port": 5001
 	},
-	"keep_alive": true
+	"keep_alive": true,
+	"messages": [
+		"process.exit",
+		"verifier.verbose"
+	]
 }

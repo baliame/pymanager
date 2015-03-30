@@ -1,5 +1,6 @@
 import shlex
 import subprocess
+from .global_storage import Globals
 
 class UninitializedException(Exception):
 	def __init__(self, process):
@@ -61,7 +62,6 @@ class Process:
 		if verifier is not None:
 			if not verifier.run(self):
 				raise VerificationFailedException(self)
-		self.rcode = None
 
 	def __del__(self):
 		if hasattr(self, "proc") and self.proc is not None:
@@ -81,8 +81,14 @@ class Process:
 
 	def wait(self, timeout=None):
 		if hasattr(self, "proc") and self.proc is not None:
+			notify = False
+			if self.proc.returncode is None:
+				notify = True
+			else:
+				return self.proc.returncode
 			code = self.proc.wait(timeout)
-			self.rcode = code
+			if self.proc.returncode is not None and notify and "process.exit" in Globals.messages:
+				print("Process {0} exited with code {1}".format(self.cmdString, self.proc.returncode))
 			return code
 		else:
 			raise UninitializedException(self)
@@ -102,7 +108,6 @@ class Process:
 				except subprocess.TimeoutExpired:
 					return None
 			else:
-				self.rcode = code
 				return code
 		else:
 			raise UninitializedException(self)
@@ -110,8 +115,12 @@ class Process:
 	def poll(self):
 		if not hasattr(self, "proc") or self.proc is None:
 			raise UninitializedException(self)
+		notify = False
+		if self.proc.returncode is None:
+			notify = True
 		self.proc.poll()
-		self.rcode = self.proc.returncode
+		if self.proc.returncode is not None and notify and "process.exit" in Globals.messages:
+			print("Process {0} exited with code {1}".format(self.cmdString, self.proc.returncode))
 		return self.proc.returncode
 
 	def signal(self, signal):
@@ -131,13 +140,17 @@ class Process:
 
 	def terminate(self):
 		if hasattr(self, "proc") and self.proc is not None:
-			self.proc.terminate()
+			if self.proc.poll() is None:
+				self.proc.terminate()
+				self.proc.poll()
 		else:
 			raise UninitializedException(self)
 
 	def kill(self):
 		if hasattr(self, "proc") and self.proc is not None:
-			self.proc.kill()
+			if self.proc.poll() is None:
+				self.proc.kill()
+				self.proc.poll()
 		else:
 			raise UninitializedException(self)
 
@@ -145,7 +158,7 @@ class Process:
 		if hasattr(self, "proc") and self.proc is not None:
 			self.terminate()
 			try:
-				self.wait()
+				self.wait(timeout)
 			except subprocess.TimeoutExpired:
 				self.kill()
 		else:
