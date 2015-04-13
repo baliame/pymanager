@@ -56,9 +56,16 @@ class Process:
 		cwd = None
 		if "working_directory" in kwargs:
 			cwd = kwargs["working_directory"]
-		self.proc = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=out_method, stderr=subprocess.STDOUT, cwd=cwd)
+		env = None
+		if "environment_file" in kwargs:
+			pipe = subprocess.Popen(". %s; env" % kwargs["environment_file"], stdout=subprocess.PIPE, shell=True)
+			output = pipe.communicate()[0]
+			env = dict((line.decode().split("=", 1) for line in output.splitlines()))
+
+		self.proc = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=out_method, stderr=subprocess.STDOUT, cwd=cwd, env=env)
 		self.verifier = verifier
 		self.options = kwargs
+
 		if verifier is not None:
 			if not verifier.run(self):
 				raise VerificationFailedException(self)
