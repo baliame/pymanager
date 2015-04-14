@@ -68,6 +68,8 @@ class Process:
 			shell = kwargs["shell"]
 			if shell is False:
 				shell = True
+			if shell is True:
+				shell = Globals.default_shell
 			if shell is not True:
 				cmd = [shell, "-c", '%s' % cmd]
 				shell = False

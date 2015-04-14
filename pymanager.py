@@ -11,7 +11,8 @@ import sys
 import time
 from pymutils.global_storage import Globals
 
-version = "0.2.2"
+version = "0.2.4"
+__version__ = version
 
 def parse(filename):
 	try:
