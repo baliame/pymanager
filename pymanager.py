@@ -92,7 +92,6 @@ def main():
 
 	config = parse(opts.filename)
 
-
 	if opts.daemon:
 		spawnDaemon(spawn_and_monitor, config)
 		return 0
@@ -109,6 +108,9 @@ def spawn_and_monitor(config):
 			if "port" in hconf:
 				port = hconf["port"]
 			http_service.fork_http_service(port)
+
+	if "default_shell" in config:
+		Globals.default_shell = config["default_shell"]
 
 	Globals.status = "parsing modules"
 	if "modules" in config:
@@ -178,9 +180,6 @@ def spawn_and_monitor(config):
 			except Exception:
 				pass
 			return 5
-
-	if "default_shell" in config:
-		Globals.default_shell = config["default_shell"]
 
 	if "keep_alive" in config:
 		if config["keep_alive"]:

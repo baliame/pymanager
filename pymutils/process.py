@@ -64,14 +64,23 @@ class Process:
 			cwd = kwargs["working_directory"]
 		env = None
 		if "environment_file" in kwargs:
+			cmd = ". {0}; env".format(kwargs["environment_file"])
 			shell = kwargs["shell"]
 			if shell is False:
-				shell = Globals.default_shell
-			pipe = subprocess.Popen(". %s; env" % kwargs["environment_file"], stdout=subprocess.PIPE, shell=shell)
+				shell = True
+			if shell is not True:
+				cmd = [shell, "-c", '%s' % cmd]
+				shell = False
+			pipe = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=shell)
 			output = pipe.communicate()[0]
 			env = dict((line.decode().split("=", 1) for line in output.splitlines()))
 
-		self.proc = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=out_method, stderr=subprocess.STDOUT, cwd=cwd, env=env, shell=kwargs["shell"])
+		shell = kwargs["shell"]
+		if shell is not False and shell is not True:
+			args = [shell, "-c", ' '.join(args)]
+			shell = False
+
+		self.proc = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=out_method, stderr=subprocess.STDOUT, cwd=cwd, env=env, shell=shell)
 		self.verifier = verifier
 		self.options = kwargs
 

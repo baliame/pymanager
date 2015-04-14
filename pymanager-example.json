@@ -5,13 +5,30 @@
 		}
 	},
 	"processes": {
+		"wd": {
+			"executable": "pwd",
+			"arguments": [],
+			"options": {
+				"suppress_output": false,
+				"environment_file": "test.env",
+				"working_directory": "test",
+				"shell": true
+			},
+			"verifier": {
+				"type": "pymutils.http_verifier.HttpOkVerifier",
+				"arguments": {
+					"url": "http://google.com"
+				}
+			}
+		},
 		"test": {
 			"executable": "python3",
 			"arguments": ["test.py"],
 			"options": {
 				"suppress_output": false,
 				"environment_file": "test.env",
-				"working_directory": "test"
+				"working_directory": "test",
+				"shell": true
 			},
 			"verifier": {
 				"type": "pymutils.http_verifier.HttpOkVerifier",
@@ -21,6 +38,7 @@
 			}
 		}
 	},
+	"default_shell": "/bin/bash",
 	"http": {
 		"enabled": true,
 		"port": 5001
