@@ -11,7 +11,7 @@ import sys
 import time
 from pymutils.global_storage import Globals
 
-version = "0.2.0"
+version = "0.2.2"
 
 def parse(filename):
 	try:
@@ -178,6 +178,9 @@ def spawn_and_monitor(config):
 			except Exception:
 				pass
 			return 5
+
+	if "default_shell" in config:
+		Globals.default_shell = config["default_shell"]
 
 	if "keep_alive" in config:
 		if config["keep_alive"]:

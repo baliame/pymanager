@@ -10,7 +10,8 @@
 			"arguments": ["test.py"],
 			"options": {
 				"suppress_output": false,
-				"environment_file": "test.env"
+				"environment_file": "test.env",
+				"working_directory": "test"
 			},
 			"verifier": {
 				"type": "pymutils.http_verifier.HttpOkVerifier",
@@ -24,7 +25,6 @@
 		"enabled": true,
 		"port": 5001
 	},
-	"keep_alive": false,
 	"messages": [
 		"process.exit",
 		"verifier.verbose"

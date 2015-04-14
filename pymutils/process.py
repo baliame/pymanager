@@ -39,6 +39,12 @@ class Process:
 	
 	def init(self, commandLine, verifier=None, **kwargs):
 		self.commandLine = commandLine
+
+		if "shell" not in kwargs:
+			kwargs["shell"] = False
+		if kwargs["shell"] is True:
+			kwargs["shell"] = Globals.default_shell
+
 		if isinstance(commandLine, list):
 			self.cmdString = " ".join(commandLine)
 			args = commandLine
@@ -58,11 +64,14 @@ class Process:
 			cwd = kwargs["working_directory"]
 		env = None
 		if "environment_file" in kwargs:
-			pipe = subprocess.Popen(". %s; env" % kwargs["environment_file"], stdout=subprocess.PIPE, shell=True)
+			shell = kwargs["shell"]
+			if shell is False:
+				shell = Globals.default_shell
+			pipe = subprocess.Popen(". %s; env" % kwargs["environment_file"], stdout=subprocess.PIPE, shell=shell)
 			output = pipe.communicate()[0]
 			env = dict((line.decode().split("=", 1) for line in output.splitlines()))
 
-		self.proc = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=out_method, stderr=subprocess.STDOUT, cwd=cwd, env=env)
+		self.proc = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=out_method, stderr=subprocess.STDOUT, cwd=cwd, env=env, shell=kwargs["shell"])
 		self.verifier = verifier
 		self.options = kwargs
 
