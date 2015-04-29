@@ -1,9 +1,22 @@
 from .global_storage import Globals
+import sys
+
+def tofileln(message):
+	if Globals.outfile is None:
+		Globals.outfile = sys.stdout
+	if Globals.outfile is sys.stdout:
+		print(message, file=sys.stdout)
+	else:
+		b = "{0}\n".format(message).encode('utf-8')
+		Globals.outfile.write(b)
 
 def debug(message):
 	if Globals.verbose >= 2:
-		print("[DEBUG] {0}".format(message))
+		tofileln("[DEBUG] {0}".format(message))
 
 def verbose(message):
 	if Globals.verbose >= 1:
-		print(message)
+		tofileln("[INFO] {0}".format(message))
+
+def log(message):
+	tofileln(message)

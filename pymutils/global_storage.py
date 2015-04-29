@@ -7,5 +7,6 @@ class Globals:
 	status = "booting"
 	default_shell = True
 	verbose = 0
+	outfile = None
 
 	messages = []

@@ -2,7 +2,7 @@ from pymutils.process import Process
 import pymutils.verifier as verifier
 from optparse import OptionParser
 import pymutils.http_service as http_service
-from pymutils.debug import verbose, debug
+from pymutils.debug import verbose, debug, log
 import collections
 import os
 import json
@@ -12,7 +12,7 @@ import sys
 import time
 from pymutils.global_storage import Globals
 
-version = "0.2.5"
+version = "0.2.6"
 __version__ = version
 
 def parse(filename):
@@ -33,6 +33,11 @@ def parse(filename):
 
 	return jdata
 
+def clean_outfile():
+	if Globals.outfile is not sys.stdout and Globals.outfile is not None:
+		Globals.outfile.close()
+		Globals.outfile = None
+
 def graceful_shutdown(signum, frame):
 	if Globals.in_force_quit:
 		return
@@ -44,6 +49,7 @@ def graceful_shutdown(signum, frame):
 				if proc.poll() is None:
 					proc.kill()
 			Globals.may_terminate = True
+			clean_outfile()
 		return
 	print("Shutting down gracefully (SIGINT again to terminate immediately)...")
 	Globals.shutdown = True
@@ -57,7 +63,8 @@ def graceful_shutdown(signum, frame):
 		except Exception:
 			pass
 	Globals.may_terminate = True
-
+	clean_outfile()
+	
 def spawnDaemon(func, conf):
     try: 
         pid = os.fork() 
@@ -88,6 +95,7 @@ def main():
 	parser.add_option("-w", "--debug", dest="debug", default=False, action="store_true", help="Display debug information. Implies verbose.")
 	parser.add_option("-f", "--file", dest="filename", default="pymanager.json", help="The name of the pymanager file to use, defaults to pymanager.json.", metavar="FILE")
 	parser.add_option("-d", "--daemon", dest="daemon", default=False, action="store_true", help="Daemonize self after processes are launched.")
+	parser.add_option("-l", "--logfile", dest="logfile", default=None, help="Send all messages to this logfile instead of output.")
 	opts, args = parser.parse_args()
 
 	if opts.version:
@@ -101,6 +109,8 @@ def main():
 		config["verbose"] = 1
 	else:
 		config["verbose"] = 0
+	if opts.logfile != None:
+		config["logfile"] = opts.logfile
 
 	if opts.daemon:
 		spawnDaemon(spawn_and_monitor, config)
@@ -113,6 +123,10 @@ def spawn_and_monitor(config):
 
 	if "verbose" in config:
 		Globals.verbose = config["verbose"]
+	if "logfile" in config:
+		Globals.outfile = open(config["logfile"], "wb", 0)
+	else:
+		Globals.outfile = sys.stdout
 
 	verbose("Checking HTTP configuration.")
 	if "http" in config:
@@ -139,7 +153,7 @@ def spawn_and_monitor(config):
 		for module, definition in config["modules"].items():
 			debug("Loading module {0}".format(module))
 			if "verifiers" not in definition:
-				print("Warning: module {0} does not contain a list of verifiers to load.".format(module))
+				log("[WARNING] module {0} does not contain a list of verifiers to load.".format(module))
 			else:
 				try:
 					mod = __import__(module)
@@ -151,17 +165,18 @@ def spawn_and_monitor(config):
 									debug("Loading verifier {0}".format(v))
 									verifiers["{0}.{1}".format(module, v)] = getattr(mod, v)
 								else:
-									print("Warning: object '{0}' from module {1} is not a subclass of Verifier".format(v, module))
+									log("[WARNING] object '{0}' from module {1} is not a subclass of Verifier".format(v, module))
 							else:
-								print("Warning: object '{0}' from module {1} is not a class".format(v, module))
+								log("[WARNING] object '{0}' from module {1} is not a class".format(v, module))
 						except AttributeError:
-							print("Warning: missing verifier '{0}' from module {1}".format(v, module))
+							log("[WARNING] missing verifier '{0}' from module {1}".format(v, module))
 				except ImportError:
-					print("Warning: module {0} not found.".format(module))
+					log("[WARNING] module {0} not found.".format(module))
 
 	verbose("Modules are loaded, parsing processes.")
 	if not "processes" in config:
-		print("Error: No processes listed in the configuration file.")
+		log("[ERROR] No processes listed in the configuration file.")
+		clean_outfile()
 		return 4
 
 	signal.signal(signal.SIGINT, graceful_shutdown)
@@ -200,7 +215,7 @@ def spawn_and_monitor(config):
 			verbose("Process creation finished.")
 	except Exception as e:
 		etype, _, _ = sys.exc_info()
-		print("Error: could not set up processes: {0}: {1}".format(etype.__name__, e))
+		log("[ERROR] could not set up processes: {0}: {1}".format(etype.__name__, e))
 		Globals.status = "shutdown"
 		#traceback.print_exc()
 		for proc in Process.processes:
@@ -208,6 +223,7 @@ def spawn_and_monitor(config):
 				proc.kill()
 			except Exception:
 				pass
+			clean_outfile()
 			return 5
 
 	verbose("Finished setting up processes.")
@@ -222,7 +238,7 @@ def spawn_and_monitor(config):
 				raise ValueError
 			Globals.terminate_time_allowed = t
 		except ValueError:
-			print("Warning: invalid graceful_time '{0}', must be a positive number.".format(t))
+			log("[WARNING] invalid graceful_time '{0}', must be a positive number.".format(t))
 
 	
 	Globals.status = "running"
@@ -242,6 +258,7 @@ def spawn_and_monitor(config):
 	while not Globals.may_terminate:
 		time.sleep(5)
 
+	clean_outfile()
 	return 0
 
 if __name__ == "__main__":
