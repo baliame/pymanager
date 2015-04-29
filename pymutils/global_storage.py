@@ -6,5 +6,6 @@ class Globals:
 	terminate_time_allowed = 10
 	status = "booting"
 	default_shell = True
+	verbose = 0
 
 	messages = []
