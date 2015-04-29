@@ -18,6 +18,6 @@ class ExitedVerifier(Verifier):
 		except subprocess.TimeoutExpired:
 			self.log_fail("Process did not exit in given timeframe {0}s".format(self.timeout))
 			return False
-		if proc.returncode != self.expect_code:
-			self.log_fail("Expected exit code {0}, got {1}".format(proc.returncode, self.expect_code))
-		return proc.returncode == self.expect_code
+		if proc.code() != self.expect_code:
+			self.log_fail("Expected exit code {0}, got {1}".format(proc.code(), self.expect_code))
+		return proc.code() == self.expect_code
